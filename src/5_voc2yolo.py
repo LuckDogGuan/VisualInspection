@@ -92,7 +92,7 @@ def process_xml(xml_path, output_txt_path):
 
 def main():
     base_dir = Path(r"d:\code\VisualInspection\铝型材缺陷图")
-    raw_anno_dir = base_dir / "datasets" / "raw_annotations"
+    raw_anno_dir = base_dir / "data" / "raw_annotations"
     
     # 创建标注输入区
     raw_anno_dir.mkdir(parents=True, exist_ok=True)
@@ -106,7 +106,7 @@ def main():
     print(f"📂 找到 {len(xml_files)} 个 XML 标注文件。开始对齐本地原图并转换为 YOLO 格式...")
     
     # 输出的目标文件夹
-    output_dataset_dir = base_dir / "datasets" / "aluminum_defects"
+    output_dataset_dir = base_dir / "data" / "yolo_dataset"
     train_img_dir = output_dataset_dir / "images" / "train"
     val_img_dir = output_dataset_dir / "images" / "val"
     train_lbl_dir = output_dataset_dir / "labels" / "train"
@@ -116,13 +116,16 @@ def main():
         d.mkdir(parents=True, exist_ok=True)
         
     # 原图搜索来源
-    image_sources = [base_dir / "APSPC1", base_dir / "APSPC2"]
+    image_sources = [
+        base_dir / "data" / "raw_images" / "APSPC1", 
+        base_dir / "data" / "raw_images" / "APSPC2"
+    ]
     
     matched_pairs = []
     skipped_count = 0
     
     # 用临时目录存放生成的 yolo 标注 txt 文件
-    temp_txt_dir = base_dir / "datasets" / "temp_txt_labels"
+    temp_txt_dir = base_dir / "data" / "temp_txt_labels"
     temp_txt_dir.mkdir(parents=True, exist_ok=True)
     
     for xml_file in xml_files:

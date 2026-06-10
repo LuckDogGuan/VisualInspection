@@ -208,9 +208,9 @@ def main():
     print("✅ 级联检测流水线挂载成功！")
     
     # 执行模拟测试，从不良图片示例中挑选 5 张图片进行测试运行
-    test_folder = base_dir / "不良图片示例"
+    test_folder = base_dir / "data" / "bad_examples"
     if not test_folder.exists() or len(list(test_folder.glob("*.*"))) == 0:
-        print("⚠️ 未找到 [不良图片示例] 文件夹或文件夹内没有图片，无法运行基准测试。")
+        print("⚠️ 未找到 [data/bad_examples] 文件夹或文件夹内没有图片，无法运行基准测试。")
         return
         
     test_imgs = list(test_folder.glob("*.*"))[:5]
@@ -223,8 +223,8 @@ def main():
         print(f"📸 图像: {res['图片名称']} -> 结果: {res['判定结果']} (缺陷数: {res['缺陷数量']}) | 耗时: {res['耗时_毫秒']}ms")
         
     df = pd.DataFrame(report_data)
-    out_dir = base_dir / "检测结果输出"
-    out_dir.mkdir(exist_ok=True)
+    out_dir = base_dir / "outputs" / "batch_results"
+    out_dir.mkdir(parents=True, exist_ok=True)
     report_path = out_dir / "级联检测报告.csv"
     df.to_csv(report_path, index=False, encoding='utf-8-sig')
     

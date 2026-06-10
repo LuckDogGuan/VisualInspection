@@ -6,8 +6,8 @@ from ultralytics import YOLO
 def batch_detect():
     base_dir = Path(r"d:\code\VisualInspection\铝型材缺陷图")
     # 测试时，以 APSPC1 目录为例进行批量测试
-    input_folder = base_dir / "APSPC1" 
-    output_folder = base_dir / "检测结果输出"
+    input_folder = base_dir / "data" / "raw_images" / "APSPC1" 
+    output_folder = base_dir / "outputs" / "batch_results"
     output_folder.mkdir(parents=True, exist_ok=True)
     
     weights_dir = base_dir / "src" / "runs"

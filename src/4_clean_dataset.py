@@ -45,9 +45,9 @@ def is_polluted(img_path):
 
 def clean_dataset():
     base_dir = Path(r"d:\code\VisualInspection\铝型材缺陷图")
-    folders_to_check = [base_dir / "不良图片示例"]
+    folders_to_check = [base_dir / "data" / "bad_examples"]
     
-    trash_dir = base_dir / "已被清理的非合规图片"
+    trash_dir = base_dir / "outputs" / "trash_bin"
     trash_dir.mkdir(exist_ok=True)
     
     removed_count = 0

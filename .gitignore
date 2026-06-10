@@ -3,12 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# 忽略大型数据集图片目录 (关键：防止仓库过大)
-APSPC1/
-APSPC2/
-不良图片示例/
-datasets/
-已被清理的非合规图片/
+# 忽略数据文件夹 (包含所有大型原图、标注及临时YOLO数据集)
+data/
+
+# 忽略输出文件夹 (包含推理渲染图、检测报告及被过滤的非合规图片)
+outputs/
+
+# 忽略临时脚本文件夹
+scratch/
 
 # 忽略权重文件和缓存文件
 *.pt
@@ -17,14 +19,13 @@ datasets/
 src/yolov8n.pt
 src/runs/
 
-# 忽略输出结果和日志
-检测结果输出/
+# 忽略通用输出格式和日志
 .system_generated/
 *.csv
 *.xlsx
 *.log
 
-# 忽略压缩文件与临时文件
+# 忽略压缩文件与IDE临时文件
 *.zip
 *.tar.gz
 *.rar

@@ -5,9 +5,9 @@ from pathlib import Path
 
 def setup_dataset():
     base_dir = Path(r"d:\code\VisualInspection\铝型材缺陷图")
-    source_dir = base_dir 
+    source_dir = base_dir / "data" / "raw_images"
     
-    dataset_dir = base_dir / "datasets" / "steel_defects"
+    dataset_dir = base_dir / "data" / "yolo_dataset"
     train_img_dir = dataset_dir / "images" / "train"
     val_img_dir = dataset_dir / "images" / "val"
     train_lbl_dir = dataset_dir / "labels" / "train"
