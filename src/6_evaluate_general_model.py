@@ -26,7 +26,7 @@ def main():
         print(f"  类别 {idx}: {name}")
         
     # 定义测试输入与输出
-    test_img_dir = base_dir / "data" / "bad_examples"
+    test_img_dir = base_dir / "data" / "raw_images" / "APSPC1" 
     output_dir = base_dir / "outputs" / "general_model_results"
     output_dir.mkdir(parents=True, exist_ok=True)
     
