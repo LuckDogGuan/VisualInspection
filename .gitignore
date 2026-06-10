@@ -1,0 +1,33 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 忽略大型数据集图片目录 (关键：防止仓库过大)
+APSPC1/
+APSPC2/
+不良图片示例/
+datasets/
+已被清理的非合规图片/
+
+# 忽略权重文件和缓存文件
+*.pt
+*.onnx
+*.engine
+src/yolov8n.pt
+src/runs/
+
+# 忽略输出结果和日志
+检测结果输出/
+.system_generated/
+*.csv
+*.xlsx
+*.log
+
+# 忽略压缩文件与临时文件
+*.zip
+*.tar.gz
+*.rar
+.idea/
+.vscode/
+.gemini/

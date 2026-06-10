@@ -1,0 +1,17 @@
+# YOLOv8 铝型材表面缺陷检测数据集配置文件
+path: d:/code/VisualInspection/铝型材缺陷图/datasets/aluminum_defects # 数据集根目录
+train: images/train # 训练图片目录
+val: images/val     # 验证图片目录
+
+# 缺陷类别映射表 (天池官方 10 大表面缺陷)
+names:
+  0: budaodian      # 不导电
+  1: cahua          # 擦花
+  2: jiaoweiloudi   # 角位漏底
+  3: jupi           # 桔皮
+  4: loudi          # 漏底
+  5: penliu         # 喷流
+  6: qipao          # 漆泡
+  7: qikeng         # 起坑
+  8: zase           # 杂色
+  9: zangdian       # 脏点
