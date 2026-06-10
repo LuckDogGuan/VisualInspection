@@ -39,6 +39,8 @@
     ├── 4_clean_dataset.py      # 数据清洗与红框过滤脚本
     ├── 5_voc2yolo.py           # XML标注对齐并自动生成训练集脚本
     ├── 6_evaluate_general_model.py # 通用缺陷模型评估与推理脚本
+    ├── 7_evaluate_100_images.py # 随机抽取 100 张原图进行检测评估脚本
+    ├── 8_auto_label_from_classified.py # 分类引导自动标注与划分数据集脚本
     └── pipeline_detect.py      # 模块化级联判定框架主程序
 ```
 
@@ -62,7 +64,21 @@
     ```
 *   **作用**：载入已下载好的 `src/neu_det_best.pt` 金属通用模型，对 `data/bad_examples` 进行缺陷预测，并将画好红框的渲染图和 Excel/CSV 报表输出到 `outputs/general_model_results/`。您可直接打开该文件夹查看效果。
 
-### 3. 一键对齐本地图库并划分训练集
+### 3. 随机抽取 100 张原图检测（广泛看效果）
+*   **命令**：
+    ```bash
+    python src/7_evaluate_100_images.py
+    ```
+*   **作用**：从本地原图库 `data/raw_images/APSPC1` 中随机抽样 100 张图片，进行缺陷推理画框并输出报告至 `outputs/general_model_results_100/`，可直观对比正常反光条纹与真实缺陷在通用模型下的响应。
+
+### 4. 导入分类数据进行“AI 自动标注”（直接搞定未标注分类数据）
+*   **命令**：
+    ```bash
+    python src/8_auto_label_from_classified.py
+    ```
+*   **作用**：针对未标注但已分类好的 `data/分类数据/ali2018/` 目录。脚本会自动调用定位模型圈出瑕疵坐标，并强制将标签覆盖为对应的文件夹缺陷类型（如 0-不导电, 1-擦花, 9-脏点等），且将正常品引入作为背景负样本，自动构建出包含近 2000 张图的 YOLO 训练集。
+
+### 5. 一键对齐本地图库并划分训练集
 *   **第一步**：将您下载好的原始 XML 标注文件放入 `data/raw_annotations` 文件夹中。
 *   **第二步**：在终端运行：
     ```bash
@@ -70,21 +86,14 @@
     ```
 *   **作用**：脚本会自动读取 XML，把坐标转化为 YOLO 归一化格式，并在本地对齐匹配 `data/raw_images` 里的 1271 张图片，按 9:1 的比例自动存入 `data/yolo_dataset` 供训练使用。
 
-### 4. AI 辅助自动预标注（免去手动标注划痕的痛苦）
-*   **命令**：
-    ```bash
-    python src/3_auto_label.py
-    ```
-*   **作用**：利用通用模型 `neu_det_best.pt` 对您的训练图库进行自动标注。运行后，模型会自动识别划痕并在 `data/yolo_dataset/labels/train` 中生成 `.txt` 标注，您只需在此基础上用标注软件微调即可。
-
-### 5. 启动模型训练（上传到服务器后运行）
+### 6. 启动模型训练（上传到服务器后运行）
 *   **命令**：
     ```bash
     python src/1_train.py
     ```
 *   **作用**：加载 `src/dataset.yaml` 启动 YOLO 训练。代码已做自适应优化：本地运行时自动采用 CPU 模式以验证代码；在云端服务器运行时，会自动调用显卡（GPU）进行快速训练。
 
-### 6. 运行现场“级联检测流水线”
+### 7. 运行现场“级联检测流水线”
 *   **命令**：
     ```bash
     python src/pipeline_detect.py
