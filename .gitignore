@@ -8,6 +8,7 @@ data/
 
 # 忽略输出文件夹 (包含推理渲染图、检测报告及被过滤的非合规图片)
 outputs/
+server_outputs/
 
 # 忽略临时脚本文件夹
 scratch/

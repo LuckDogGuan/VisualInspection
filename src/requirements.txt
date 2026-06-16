@@ -3,3 +3,6 @@ opencv-python
 pandas
 openpyxl
 numpy
+Pillow
+torch
+torchvision
