@@ -9,7 +9,7 @@ from typing import Sequence
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from torchvision import transforms
 
 from .config import PipelineConfig, resolve_path
@@ -63,13 +63,71 @@ def accuracy(logits: torch.Tensor, targets: torch.Tensor) -> float:
     return (predictions == targets).float().mean().item() * 100.0
 
 
-def _build_loader(dataset, batch_size: int, shuffle: bool, workers: int, device: torch.device, prefetch_factor: int) -> DataLoader:
+class FocalLoss(nn.Module):
+    def __init__(
+        self,
+        gamma: float = 2.0,
+        weight: torch.Tensor | None = None,
+        reduction: str = "mean",
+    ):
+        super().__init__()
+        self.gamma = gamma
+        self.register_buffer("weight", weight if weight is not None else None)
+        self.reduction = reduction
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        log_probs = nn.functional.log_softmax(logits, dim=1)
+        log_pt = log_probs.gather(1, targets.unsqueeze(1)).squeeze(1)
+        ce_loss = -log_pt
+        pt = log_pt.exp()
+        focal_loss = ((1.0 - pt) ** self.gamma) * ce_loss
+        if self.weight is not None:
+            focal_loss = focal_loss * self.weight.gather(0, targets)
+        if self.reduction == "mean":
+            return focal_loss.mean()
+        if self.reduction == "sum":
+            return focal_loss.sum()
+        if self.reduction == "none":
+            return focal_loss
+        raise ValueError(f"Unsupported reduction: {self.reduction}")
+
+
+def build_class_weights(rows: Sequence[LabelRow], num_classes: int) -> torch.Tensor:
+    counts = torch.zeros(num_classes, dtype=torch.float32)
+    for row in rows:
+        counts[row.label] += 1.0
+    weights = torch.zeros(num_classes, dtype=torch.float32)
+    nonzero = counts > 0
+    weights[nonzero] = counts[nonzero].sum() / (counts[nonzero] * nonzero.sum())
+    if weights[nonzero].numel() > 0:
+        weights[nonzero] = weights[nonzero] / weights[nonzero].mean()
+    return weights
+
+
+def build_weighted_sampler(rows: Sequence[LabelRow]) -> WeightedRandomSampler:
+    counts: dict[int, int] = {}
+    for row in rows:
+        counts[row.label] = counts.get(row.label, 0) + 1
+    sample_weights = [1.0 / counts[row.label] for row in rows]
+    return WeightedRandomSampler(torch.DoubleTensor(sample_weights), num_samples=len(rows), replacement=True)
+
+
+def _build_loader(
+    dataset,
+    batch_size: int,
+    shuffle: bool,
+    workers: int,
+    device: torch.device,
+    prefetch_factor: int,
+    sampler=None,
+) -> DataLoader:
     kwargs = {
         "batch_size": batch_size,
-        "shuffle": shuffle,
+        "shuffle": shuffle if sampler is None else False,
         "num_workers": workers,
         "pin_memory": device.type == "cuda",
         "persistent_workers": workers > 0,
+        "sampler": sampler,
     }
     if workers > 0:
         kwargs["prefetch_factor"] = prefetch_factor
@@ -118,7 +176,15 @@ def _run_epoch(
     return total_loss / total_items, total_acc / total_items
 
 
-def train_classifier(config: PipelineConfig, rows: Sequence[LabelRow], pretrained: bool = False) -> Path:
+def train_classifier(
+    config: PipelineConfig,
+    rows: Sequence[LabelRow],
+    pretrained: bool = False,
+    loss_name: str = "cross_entropy",
+    use_class_weights: bool = False,
+    use_weighted_sampler: bool = False,
+    focal_gamma: float = 2.0,
+) -> Path:
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu_ids
     seed_everything(config.seed)
 
@@ -138,8 +204,15 @@ def train_classifier(config: PipelineConfig, rows: Sequence[LabelRow], pretraine
     use_amp = config.use_amp and device.type == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp) if device.type == "cuda" else None
     model = build_classifier(config.num_classes, architecture=config.architecture, pretrained=pretrained).to(device)
-    criterion = nn.CrossEntropyLoss()
+    class_weights = build_class_weights(train_rows, config.num_classes).to(device) if use_class_weights else None
+    if loss_name == "cross_entropy":
+        criterion = nn.CrossEntropyLoss(weight=class_weights)
+    elif loss_name == "focal":
+        criterion = FocalLoss(gamma=focal_gamma, weight=class_weights)
+    else:
+        raise ValueError(f"Unsupported loss_name: {loss_name}")
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
+    train_sampler = build_weighted_sampler(train_rows) if use_weighted_sampler else None
 
     train_loader = _build_loader(
         DefectDataset(train_rows, build_train_transforms(config.image_size)),
@@ -148,6 +221,7 @@ def train_classifier(config: PipelineConfig, rows: Sequence[LabelRow], pretraine
         workers=config.workers,
         device=device,
         prefetch_factor=config.prefetch_factor,
+        sampler=train_sampler,
     )
     val_loader = _build_loader(
         DefectDataset(val_rows, build_eval_transforms(config.image_size)),

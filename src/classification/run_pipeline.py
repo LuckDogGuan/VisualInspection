@@ -28,6 +28,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--pretrained", action="store_true", help="Use torchvision pretrained weights")
     parser.add_argument("--no-amp", action="store_true", help="Disable CUDA AMP mixed precision")
+    parser.add_argument("--loss", choices=["cross_entropy", "focal"], default="cross_entropy")
+    parser.add_argument("--class-weights", action="store_true", help="Use inverse-frequency class weights")
+    parser.add_argument("--weighted-sampler", action="store_true", help="Sample rare classes more often during training")
+    parser.add_argument("--focal-gamma", type=float, default=2.0, help="Gamma value when --loss focal is used")
     parser.add_argument("--index-only", action="store_true", help="Only write label/test CSV files")
     parser.add_argument("--dry-run", action="store_true", help="Scan data and print summary without training")
     return parser.parse_args()
@@ -78,10 +82,23 @@ def main() -> None:
         f"data_root={data_root} batch_size={config.batch_size} workers={config.workers} "
         f"amp={config.use_amp} prefetch_factor={config.prefetch_factor}"
     )
+    print(
+        "training_strategy="
+        f"loss={args.loss} class_weights={args.class_weights} "
+        f"weighted_sampler={args.weighted_sampler} focal_gamma={args.focal_gamma}"
+    )
     if args.index_only or args.dry_run:
         return
 
-    best_model = train_classifier(config, training_rows, pretrained=args.pretrained)
+    best_model = train_classifier(
+        config,
+        training_rows,
+        pretrained=args.pretrained,
+        loss_name=args.loss,
+        use_class_weights=args.class_weights,
+        use_weighted_sampler=args.weighted_sampler,
+        focal_gamma=args.focal_gamma,
+    )
     print(f"best_model={best_model}")
     artifact_path, labels_path = export_torchscript_checkpoint(
         best_model,
