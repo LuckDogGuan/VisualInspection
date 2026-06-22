@@ -1,0 +1,5 @@
+dent
+powder
+stain
+crack
+transverse_bump

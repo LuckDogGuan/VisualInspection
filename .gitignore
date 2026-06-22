@@ -5,6 +5,23 @@ __pycache__/
 
 # 忽略数据文件夹 (包含所有大型原图、标注及临时YOLO数据集)
 data/
+!data/
+!data/yolo_stage3_manual/
+!data/yolo_stage3_manual/README.md
+!data/yolo_stage3_manual/annotation_registry.csv
+!data/yolo_stage3_manual/selection_manifest.csv
+!data/yolo_stage3_manual/batches/
+!data/yolo_stage3_manual/batches/**
+!data/yolo_stage3_manual/candidate_images/
+!data/yolo_stage3_manual/candidate_images/**
+!data/yolo_stage3_manual/labelimg_work/
+!data/yolo_stage3_manual/labelimg_work/**
+!data/yolo_stage3_manual/review/
+!data/yolo_stage3_manual/review/**
+data/yolo_stage3_manual/dataset/
+data/yolo_stage3_manual/exports/
+data/yolo_stage3_manual/ultralytics_config/
+data/yolo_stage3_manual/**/*.cache
 
 # 忽略输出文件夹 (包含推理渲染图、检测报告及被过滤的非合规图片)
 outputs/
