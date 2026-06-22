@@ -55,3 +55,8 @@ src/runs/
 .idea/
 .vscode/
 .gemini/
+
+# Keep YOLO stage 3 annotation metadata traceable even though generic CSV files are ignored.
+!data/yolo_stage3_manual/annotation_registry.csv
+!data/yolo_stage3_manual/selection_manifest.csv
+!data/yolo_stage3_manual/**/selection_manifest.csv
