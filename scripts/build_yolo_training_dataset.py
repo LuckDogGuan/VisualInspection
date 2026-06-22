@@ -92,9 +92,17 @@ def write_data_yaml(export_root: Path) -> None:
     (export_root / "data.yaml").write_text(text, encoding="utf-8")
 
 
+def ensure_clean_export_root(export_root: Path) -> None:
+    if export_root.exists() and any(export_root.iterdir()):
+        raise SystemExit(
+            f"Export directory is not empty: {export_root}\n"
+            "Use a new --output-name to create a clean dataset."
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--project-root", default=r"D:\code\VisualInspection\铝型材缺陷图")
+    parser.add_argument("--project-root", default=str(Path.cwd()))
     parser.add_argument("--output-name", default="dataset_annotated")
     parser.add_argument("--val-ratio", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=20260622)
@@ -104,6 +112,7 @@ def main() -> None:
     stage_root = project_root / "data" / "yolo_stage3_manual"
     registry_path = stage_root / "annotation_registry.csv"
     export_root = stage_root / "exports" / args.output_name
+    ensure_clean_export_root(export_root)
 
     rows = [
         row

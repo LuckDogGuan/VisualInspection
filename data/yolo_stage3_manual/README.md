@@ -50,8 +50,8 @@ Current batches:
 
 ```text
 batch_001: original first 40 images, already annotated
-batch_002: next 40 images, selected for annotation
-batch_003: next 70 images, selected for annotation
+batch_002: next 40 images, already annotated
+batch_003: next 70 images, already annotated
 ```
 
 For `batch_002`, open LabelImg with:
@@ -84,13 +84,13 @@ This checks YOLO label format, rewrites labels as UTF-8 without BOM, and updates
 Only rows marked `annotated` are exported. Selected-but-unfinished batches are ignored.
 
 ```text
-python scripts/build_yolo_training_dataset.py --output-name dataset_annotated
+python scripts/build_yolo_training_dataset.py --output-name dataset_annotated_150
 ```
 
 Output:
 
 ```text
-data/yolo_stage3_manual/exports/dataset_annotated
+data/yolo_stage3_manual/exports/dataset_annotated_150
   data.yaml
   export_manifest.csv
   images/train
@@ -100,6 +100,8 @@ data/yolo_stage3_manual/exports/dataset_annotated
 ```
 
 The exported image names are ASCII and traceable through `export_manifest.csv`.
+The export script refuses to write into a non-empty export directory. Use a new
+`--output-name` for each clean training dataset instead of reusing an old folder.
 
 ## Server Training
 
@@ -107,7 +109,7 @@ Copy the exported dataset, `yolov8n.pt`, and `scripts/train_yolo_stage3.py` to t
 
 ```text
 python scripts/train_yolo_stage3.py ^
-  --data data/yolo_stage3_manual/exports/dataset_annotated/data.yaml ^
+  --data data/yolo_stage3_manual/exports/dataset_annotated_150/data.yaml ^
   --model yolov8n.pt ^
   --epochs 100 ^
   --imgsz 640 ^
