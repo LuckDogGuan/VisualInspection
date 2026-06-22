@@ -57,6 +57,61 @@ batch_002: next 40 images, already annotated
 batch_003: next 70 images, already annotated
 ```
 
+## Next Annotation Target: Improve mAP50
+
+The first server training run completed with overall mAP50 around `0.503`.
+For the next round, optimize mAP50 first. Treat mAP50-95 as a later refinement
+metric after the model can reliably find approximate defect locations.
+
+Current class priority:
+
+```text
+P0 stain: very weak, mAP50 about 0.073
+P1 powder: weak, mAP50 about 0.369
+P1 dent: partial, mAP50 about 0.427
+P2 transverse_bump: partial, mAP50 about 0.592
+P3 crack: strong, mAP50 about 0.922
+```
+
+Recommended added labels:
+
+```text
+batch_004: stain, 60 to 80 images
+batch_005: powder + dent, 40 to 60 images each
+batch_006: transverse_bump 20 to 40 images, crack hard cases 10 to 20 images
+```
+
+Do not add new classes yet. Keep the class order unchanged:
+
+```text
+0 dent
+1 powder
+2 stain
+3 crack
+4 transverse_bump
+```
+
+Labeling focus:
+
+```text
+stain: label only real stain spots, not background, shadow, or reflection.
+powder: box the visible powder bump or powder block, not the whole profile.
+dent: box the main dent or collision mark; include clear drag marks if connected.
+transverse_bump: use long boxes for real transverse strip defects.
+crack: only add hard cases, such as short, thin, or low-contrast cracks.
+```
+
+Round-2 success criteria:
+
+```text
+overall mAP50 >= 0.60
+stain mAP50 >= 0.30
+powder mAP50 >= 0.50
+dent mAP50 >= 0.50
+```
+
+Keep images out of Git. Only labels, registry, manifests, scripts, and docs are tracked.
+
 For `batch_002`, open LabelImg with:
 
 ```text

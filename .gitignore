@@ -14,19 +14,24 @@ data/**
 !data/**/*.yaml
 !data/**/*.json
 
-# 忽略所有图像、压缩文件与缓存
-data/**/*.jpg
-data/**/*.jpeg
-data/**/*.png
-data/**/*.bmp
-data/**/*.webp
-data/**/*.gif
+# 忽略所有图像（全局规则）
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.webp
+*.gif
+
+# 忽略压缩文件与缓存
 data/**/*.7z
 data/**/*.zip
 data/**/*.tar.gz
 data/**/*.rar
 data/**/*.cache
 data/**/ultralytics_config/
+
+# 忽略 GitNexus 相关文件
+.gitnexus/
 
 
 # 忽略输出文件夹 (包含推理渲染图、检测报告及被过滤的非合规图片)
@@ -56,6 +61,8 @@ src/runs/
 .idea/
 .vscode/
 .gemini/
+*.DS_Store
+.DS_Store
 
 # Keep YOLO stage 3 annotation metadata traceable even though generic CSV files are ignored.
 !data/yolo_stage3_manual/annotation_registry.csv

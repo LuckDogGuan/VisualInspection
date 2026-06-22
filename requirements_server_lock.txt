@@ -1,0 +1,20 @@
+# Server training environment lock, collected from xmu-server on 2026-06-18.
+# Use this as the reference for server-side training and full evaluation.
+# Do not use the Windows local CPU environment as the training benchmark.
+
+python==3.13.11
+torch==2.10.0
+torchvision==0.25.0
+cuda_runtime=12.8
+cudnn=91002
+numpy==2.4.1
+pillow==12.0.0
+opencv-python==4.13.0.92
+opencv-python-headless==4.13.0.92
+pandas==2.3.3
+PyYAML==6.0.3
+tqdm==4.67.x
+ultralytics==8.4.53
+ultralytics-thop==2.0.19
+nvidia_driver==580.159.03
+gpu==NVIDIA RTX A6000 49140MiB
