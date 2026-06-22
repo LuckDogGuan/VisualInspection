@@ -38,6 +38,9 @@ All selected and annotated images are tracked in:
 annotation_registry.csv
 ```
 
+Git stores the annotation labels, manifests, registry, scripts, and docs only.
+Annotation images stay on local disk and are ignored by Git.
+
 Rules:
 
 ```text

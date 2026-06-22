@@ -18,6 +18,11 @@ data/
 !data/yolo_stage3_manual/labelimg_work/**
 !data/yolo_stage3_manual/review/
 !data/yolo_stage3_manual/review/**
+data/yolo_stage3_manual/**/*.jpg
+data/yolo_stage3_manual/**/*.jpeg
+data/yolo_stage3_manual/**/*.png
+data/yolo_stage3_manual/**/*.bmp
+data/yolo_stage3_manual/**/*.webp
 data/yolo_stage3_manual/dataset/
 data/yolo_stage3_manual/exports/
 data/yolo_stage3_manual/ultralytics_config/
