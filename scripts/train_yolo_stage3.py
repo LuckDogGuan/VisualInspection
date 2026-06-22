@@ -55,6 +55,15 @@ def write_report(run_dir: Path, metrics: dict[str, str]) -> None:
     (run_dir / "training_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def parse_bool(value: str) -> bool:
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "y", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "n", "off"}:
+        return False
+    raise argparse.ArgumentTypeError(f"expected boolean value, got {value!r}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", required=True)
@@ -66,6 +75,8 @@ def main() -> None:
     parser.add_argument("--project", default="outputs/yolo_stage3_manual")
     parser.add_argument("--name", default="server_train")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--amp", dest="amp", type=parse_bool, default=True)
+    parser.add_argument("--no-amp", dest="amp", action="store_false")
     args = parser.parse_args()
 
     model = YOLO(args.model)
@@ -78,6 +89,7 @@ def main() -> None:
         device=args.device,
         project=args.project,
         name=args.name,
+        amp=args.amp,
         exist_ok=True,
     )
 
