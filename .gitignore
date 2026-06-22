@@ -3,30 +3,31 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# 忽略数据文件夹 (包含所有大型原图、标注及临时YOLO数据集)
-data/
-!data/
-!data/yolo_stage3_manual/
-!data/yolo_stage3_manual/README.md
-!data/yolo_stage3_manual/annotation_registry.csv
-!data/yolo_stage3_manual/selection_manifest.csv
-!data/yolo_stage3_manual/batches/
-!data/yolo_stage3_manual/batches/**
-!data/yolo_stage3_manual/candidate_images/
-!data/yolo_stage3_manual/candidate_images/**
-!data/yolo_stage3_manual/labelimg_work/
-!data/yolo_stage3_manual/labelimg_work/**
-!data/yolo_stage3_manual/review/
-!data/yolo_stage3_manual/review/**
-data/yolo_stage3_manual/**/*.jpg
-data/yolo_stage3_manual/**/*.jpeg
-data/yolo_stage3_manual/**/*.png
-data/yolo_stage3_manual/**/*.bmp
-data/yolo_stage3_manual/**/*.webp
-data/yolo_stage3_manual/dataset/
-data/yolo_stage3_manual/exports/
-data/yolo_stage3_manual/ultralytics_config/
-data/yolo_stage3_manual/**/*.cache
+# 数据文件夹管理：忽略所有文件，但允许遍历子目录并跟踪指定的标注/元数据文件
+data/**
+!data/**/
+
+# 允许保存的数据/标注及元数据文件类型
+!data/**/*.txt
+!data/**/*.csv
+!data/**/*.md
+!data/**/*.yaml
+!data/**/*.json
+
+# 忽略所有图像、压缩文件与缓存
+data/**/*.jpg
+data/**/*.jpeg
+data/**/*.png
+data/**/*.bmp
+data/**/*.webp
+data/**/*.gif
+data/**/*.7z
+data/**/*.zip
+data/**/*.tar.gz
+data/**/*.rar
+data/**/*.cache
+data/**/ultralytics_config/
+
 
 # 忽略输出文件夹 (包含推理渲染图、检测报告及被过滤的非合规图片)
 outputs/
