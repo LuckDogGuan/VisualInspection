@@ -55,7 +55,7 @@ Current batches:
 batch_001: original first 40 images, already annotated
 batch_002: next 40 images, already annotated
 batch_003: next 70 images, already annotated
-batch_004: stain priority batch, 60 images, waiting for annotation
+batch_004: stain priority batch, 57 annotated images, 3 skipped images
 ```
 
 ## Next Annotation Target: Improve mAP50
@@ -77,9 +77,10 @@ P3 crack: strong, mAP50 about 0.922
 Recommended added labels:
 
 ```text
-batch_004: stain, 60 images, prepared and waiting for annotation
-batch_005: powder + dent, 40 to 60 images each
-batch_006: transverse_bump 20 to 40 images, crack hard cases 10 to 20 images
+batch_004: stain, completed, but server_train_207 did not improve stain mAP50
+batch_005: powder + dent, 30 to 40 images each
+batch_006: stain review mini-batch, 20 to 30 very clear images only
+batch_007: decide transverse_bump and crack hard cases after reviewing batch_005 and batch_006
 ```
 
 Do not add new classes yet. Keep the class order unchanged:
@@ -113,14 +114,33 @@ dent mAP50 >= 0.50
 
 Keep images out of Git. Only labels, registry, manifests, scripts, and docs are tracked.
 
-For `batch_004`, open LabelImg with:
+## Batch 004 Result
+
+`batch_004` added 57 valid stain annotations and 244 boxes. Training on
+`dataset_annotated_207` completed on the server as `server_train_207`.
+
+Result:
+
+```text
+final mAP50: 0.405
+best mAP50: 0.450
+stain mAP50: 0.0757
+```
+
+This means adding more stain images did not materially improve stain detection.
+Before adding many more stain labels, review the stain labeling rule and keep
+only very clear stain spots. Skip uncertain images.
+
+`batch_004` is already finalized. Do not annotate it again.
+
+For the next prepared batch, open LabelImg with the matching batch folder, for example:
 
 ```text
 Open Dir:
-data/yolo_stage3_manual/batches/batch_004/images
+data/yolo_stage3_manual/batches/batch_005/images
 
 Change Save Dir:
-data/yolo_stage3_manual/batches/batch_004/labels
+data/yolo_stage3_manual/batches/batch_005/labels
 
 Format:
 YOLO

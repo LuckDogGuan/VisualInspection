@@ -79,10 +79,10 @@ def split_rows(rows: list[dict[str, str]], val_ratio: float, seed: int) -> dict[
     return splits
 
 
-def write_data_yaml(export_root: Path) -> None:
+def write_data_yaml(export_root: Path, dataset_path: str) -> None:
     names = "".join(f"  {i}: {name}\n" for i, name in enumerate(CLASS_ORDER))
     text = (
-        f"path: {export_root.as_posix()}\n"
+        f"path: {dataset_path}\n"
         "train: images/train\n"
         "val: images/val\n"
         "test: images/test\n"
@@ -106,6 +106,11 @@ def main() -> None:
     parser.add_argument("--output-name", default="dataset_annotated")
     parser.add_argument("--val-ratio", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=20260622)
+    parser.add_argument(
+        "--yaml-path",
+        default="",
+        help="Override the path written to data.yaml, useful for server absolute paths.",
+    )
     args = parser.parse_args()
 
     project_root = Path(args.project_root)
@@ -167,7 +172,7 @@ def main() -> None:
 
     (export_root / "images" / "test").mkdir(parents=True, exist_ok=True)
     (export_root / "labels" / "test").mkdir(parents=True, exist_ok=True)
-    write_data_yaml(export_root)
+    write_data_yaml(export_root, args.yaml_path or export_root.as_posix())
     with (export_root / "export_manifest.csv").open("w", encoding="utf-8", newline="") as f:
         fields = [
             "split",
