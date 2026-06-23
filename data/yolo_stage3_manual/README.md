@@ -56,6 +56,7 @@ batch_001: original first 40 images, already annotated
 batch_002: next 40 images, already annotated
 batch_003: next 70 images, already annotated
 batch_004: stain priority batch, 57 annotated images, 3 skipped images
+batch_005: powder + dent batch, 60 images, waiting for annotation
 ```
 
 ## Next Annotation Target: Improve mAP50
