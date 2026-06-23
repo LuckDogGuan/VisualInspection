@@ -9,6 +9,7 @@ data/**
 
 # 允许保存的数据/标注及元数据文件类型
 !data/**/*.txt
+!data/**/*.xml
 !data/**/*.csv
 !data/**/*.md
 !data/**/*.yaml

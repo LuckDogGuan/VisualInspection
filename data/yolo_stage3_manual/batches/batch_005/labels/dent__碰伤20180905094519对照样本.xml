@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>dent__碰伤20180905094519对照样本.jpg</filename>
+	<path>D:\code\VisualInspection\铝型材缺陷图\data\yolo_stage3_manual\batches\batch_005\images\dent__碰伤20180905094519对照样本.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>2560</width>
+		<height>1920</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>dent</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1389</xmin>
+			<ymin>710</ymin>
+			<xmax>1595</xmax>
+			<ymax>814</ymax>
+		</bndbox>
+	</object>
+</annotation>

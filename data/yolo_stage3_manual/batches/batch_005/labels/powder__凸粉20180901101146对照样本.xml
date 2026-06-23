@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>powder__凸粉20180901101146对照样本.jpg</filename>
+	<path>D:\code\VisualInspection\铝型材缺陷图\data\yolo_stage3_manual\batches\batch_005\images\powder__凸粉20180901101146对照样本.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>2560</width>
+		<height>1920</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>powder</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1325</xmin>
+			<ymin>1206</ymin>
+			<xmax>1845</xmax>
+			<ymax>1473</ymax>
+		</bndbox>
+	</object>
+</annotation>
