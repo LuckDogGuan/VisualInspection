@@ -34,10 +34,12 @@ def write_registry(registry_path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
-def validate_label(label_path: Path) -> tuple[int, list[str]]:
+def validate_label(label_path: Path, allow_missing: bool) -> tuple[int, list[str], str]:
     errors: list[str] = []
     if not label_path.exists():
-        return 0, [f"missing label: {label_path}"]
+        if allow_missing:
+            return 0, [], "missing label; skipped because no confirmed defect was annotated"
+        return 0, [f"missing label: {label_path}"], ""
 
     text = label_path.read_text(encoding="utf-8-sig")
     # Normalize labels to UTF-8 without BOM for Ultralytics.
@@ -64,14 +66,21 @@ def validate_label(label_path: Path) -> tuple[int, list[str]]:
             errors.append(f"{label_path.name}:{line_no}: coordinate out of 0..1: {coords}")
         box_count += 1
     if box_count == 0:
+        if allow_missing:
+            return 0, [], "empty label; skipped because no confirmed defect was annotated"
         errors.append(f"{label_path.name}: empty label")
-    return box_count, errors
+    return box_count, errors, ""
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", default=r"D:\code\VisualInspection\铝型材缺陷图")
     parser.add_argument("--batch-id", required=True)
+    parser.add_argument(
+        "--allow-missing-labels",
+        action="store_true",
+        help="Skip missing or empty labels instead of failing the batch.",
+    )
     args = parser.parse_args()
 
     project_root = Path(args.project_root)
@@ -85,10 +94,22 @@ def main() -> None:
 
     errors: list[str] = []
     total_boxes = 0
+    annotated_count = 0
+    skipped_count = 0
+    row_updates: dict[str, tuple[str, int, str]] = {}
     for row in batch_rows:
-        box_count, label_errors = validate_label(Path(row["batch_label_path"]))
+        box_count, label_errors, skip_note = validate_label(
+            Path(row["batch_label_path"]),
+            allow_missing=args.allow_missing_labels,
+        )
         total_boxes += box_count
         errors.extend(label_errors)
+        if box_count > 0:
+            annotated_count += 1
+            row_updates[row["batch_label_path"]] = ("annotated", box_count, "")
+        else:
+            skipped_count += 1
+            row_updates[row["batch_label_path"]] = ("skipped", 0, skip_note)
 
     if errors:
         print("Validation failed:")
@@ -99,14 +120,20 @@ def main() -> None:
     now = datetime.now().isoformat(timespec="seconds")
     for row in rows:
         if row.get("batch_id") == args.batch_id:
-            row["status"] = "annotated"
-            row["annotated_at"] = now
+            status, box_count, skip_note = row_updates[row["batch_label_path"]]
+            row["status"] = status
+            row["annotated_at"] = now if status == "annotated" else ""
+            if status == "skipped":
+                existing_notes = row.get("notes", "")
+                row["notes"] = f"{existing_notes}; {skip_note}".strip("; ")
 
     write_registry(registry_path, rows)
     print(f"batch_id={args.batch_id}")
     print(f"images={len(batch_rows)}")
+    print(f"annotated_images={annotated_count}")
+    print(f"skipped_images={skipped_count}")
     print(f"boxes={total_boxes}")
-    print("status=annotated")
+    print("status=finalized")
 
 
 if __name__ == "__main__":
