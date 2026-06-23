@@ -55,6 +55,7 @@ Current batches:
 batch_001: original first 40 images, already annotated
 batch_002: next 40 images, already annotated
 batch_003: next 70 images, already annotated
+batch_004: stain priority batch, 60 images, waiting for annotation
 ```
 
 ## Next Annotation Target: Improve mAP50
@@ -76,7 +77,7 @@ P3 crack: strong, mAP50 about 0.922
 Recommended added labels:
 
 ```text
-batch_004: stain, 60 to 80 images
+batch_004: stain, 60 images, prepared and waiting for annotation
 batch_005: powder + dent, 40 to 60 images each
 batch_006: transverse_bump 20 to 40 images, crack hard cases 10 to 20 images
 ```
@@ -112,14 +113,14 @@ dent mAP50 >= 0.50
 
 Keep images out of Git. Only labels, registry, manifests, scripts, and docs are tracked.
 
-For `batch_002`, open LabelImg with:
+For `batch_004`, open LabelImg with:
 
 ```text
 Open Dir:
-data/yolo_stage3_manual/batches/batch_002/images
+data/yolo_stage3_manual/batches/batch_004/images
 
 Change Save Dir:
-data/yolo_stage3_manual/batches/batch_002/labels
+data/yolo_stage3_manual/batches/batch_004/labels
 
 Format:
 YOLO
