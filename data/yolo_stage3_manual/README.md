@@ -56,7 +56,7 @@ batch_001: original first 40 images, already annotated
 batch_002: next 40 images, already annotated
 batch_003: next 70 images, already annotated
 batch_004: stain priority batch, 57 annotated images, 3 skipped images
-batch_005: powder + dent batch, 60 images, waiting for annotation
+batch_005: powder + dent batch, 58 annotated images, 2 skipped images
 ```
 
 ## Next Annotation Target: Improve mAP50
@@ -132,6 +132,31 @@ This means adding more stain images did not materially improve stain detection.
 Before adding many more stain labels, review the stain labeling rule and keep
 only very clear stain spots. Skip uncertain images.
 
+## Batch 005 Result
+
+`batch_005` was saved by LabelImg as Pascal VOC XML first, then converted to
+YOLO TXT with:
+
+```text
+python scripts/convert_labelimg_voc_to_yolo.py --batch-id batch_005
+```
+
+Result:
+
+```text
+annotated images: 58
+skipped images: 2
+boxes: 161
+dataset: dataset_annotated_265
+final mAP50: 0.351
+best mAP50: 0.394
+dent mAP50: 0.354
+powder mAP50: 0.255
+```
+
+The result did not improve over `server_train_150`. Pause large-scale labeling
+and review annotation quality before adding more data.
+
 `batch_004` is already finalized. Do not annotate it again.
 
 For the next prepared batch, open LabelImg with the matching batch folder, for example:
@@ -146,6 +171,9 @@ data/yolo_stage3_manual/batches/batch_005/labels
 Format:
 YOLO
 ```
+
+If LabelImg is accidentally left in Pascal VOC mode and creates `.xml` files,
+keep the XML files and run the converter before finalizing the batch.
 
 After finishing a batch, keep the labels in that batch folder and update the registry before preparing more images.
 

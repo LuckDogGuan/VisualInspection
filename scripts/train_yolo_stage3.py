@@ -70,7 +70,7 @@ def main() -> None:
     parser.add_argument("--model", default="yolov8n.pt")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--imgsz", type=int, default=640)
-    parser.add_argument("--batch", type=int, default=16)
+    parser.add_argument("--batch", type=int, default=64)
     parser.add_argument("--device", default="0")
     parser.add_argument("--project", default="outputs/yolo_stage3_manual")
     parser.add_argument("--name", default="server_train")
