@@ -10,6 +10,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.apply_yolo_annotation_review_decisions import build_clean_dataset
 from scripts.create_yolo_annotation_review_guides import YoloBox
 from scripts.create_yolo_prediction_review import PredBox, analyze_pair, box_iou
+from scripts.create_yolo_duplicate_review import DuplicateCandidate, choose_duplicate_keep, group_duplicate_candidates
+from scripts.auto_optimize_yolo_labels_conservative import (
+    optimize_boxes_for_class,
+)
+from scripts.create_stain_manual_review_pack import (
+    build_pack,
+    select_stain_rows,
+    worker_template_fields,
+)
 
 
 def write_image(path: Path) -> None:
@@ -258,3 +267,184 @@ def test_prediction_review_scores_missing_and_duplicate_boxes():
     assert missing_matched == 0
     assert "重复框" in duplicate_issue
     assert duplicate_matched == 1
+
+
+def test_duplicate_review_prefers_batch_005_then_newer_action():
+    candidates = [
+        DuplicateCandidate(
+            row_index=0,
+            image_name="stain_batch_001_0001.jpg",
+            class_name="stain",
+            batch_id="batch_001",
+            source_key="same-source",
+            hash_value="0" * 64,
+            action="keep",
+            image_path="a.jpg",
+            label_path="a.txt",
+        ),
+        DuplicateCandidate(
+            row_index=1,
+            image_name="stain_batch_005_0001.jpg",
+            class_name="stain",
+            batch_id="batch_005",
+            source_key="same-source",
+            hash_value="0" * 64,
+            action="merge_candidate",
+            image_path="b.jpg",
+            label_path="b.txt",
+        ),
+    ]
+
+    assert choose_duplicate_keep(candidates).batch_id == "batch_005"
+
+
+def test_duplicate_review_groups_by_source_or_near_hash():
+    candidates = [
+        DuplicateCandidate(0, "a.jpg", "stain", "batch_001", "same", "0" * 64, "keep", "a.jpg", "a.txt"),
+        DuplicateCandidate(1, "b.jpg", "stain", "batch_005", "same", "1" * 64, "keep", "b.jpg", "b.txt"),
+        DuplicateCandidate(2, "c.jpg", "dent", "batch_002", "unique-c", "0" * 64, "keep", "c.jpg", "c.txt"),
+        DuplicateCandidate(3, "d.jpg", "dent", "batch_005", "unique-d", "0" * 63 + "1", "keep", "d.jpg", "d.txt"),
+    ]
+
+    groups = group_duplicate_candidates(candidates, hash_threshold=2)
+    grouped_names = [sorted(item.image_name for item in group) for group in groups]
+
+    assert ["a.jpg", "b.jpg"] in grouped_names
+    assert ["c.jpg", "d.jpg"] in grouped_names
+
+
+def test_conservative_optimizer_merges_dense_stain_boxes():
+    boxes = [
+        YoloBox(2, 0.20, 0.30, 0.04, 0.04),
+        YoloBox(2, 0.25, 0.31, 0.04, 0.04),
+        YoloBox(2, 0.30, 0.32, 0.04, 0.04),
+        YoloBox(2, 0.35, 0.33, 0.04, 0.04),
+    ]
+
+    optimized, action, _ = optimize_boxes_for_class("stain", boxes)
+
+    assert action == "stain_merge_dense_regions"
+    assert len(optimized) < len(boxes)
+    assert optimized[0].class_id == 2
+
+
+def test_conservative_optimizer_keeps_broad_stain_clusters_unmerged():
+    boxes = [
+        YoloBox(2, 0.10, 0.25, 0.04, 0.04),
+        YoloBox(2, 0.30, 0.25, 0.04, 0.04),
+        YoloBox(2, 0.50, 0.25, 0.04, 0.04),
+        YoloBox(2, 0.70, 0.25, 0.04, 0.04),
+    ]
+
+    optimized, action, _ = optimize_boxes_for_class("stain", boxes)
+
+    assert action == "kept_original"
+    assert optimized == boxes
+
+
+def test_conservative_optimizer_merges_overlapping_dent_only():
+    boxes = [
+        YoloBox(0, 0.50, 0.50, 0.08, 0.08),
+        YoloBox(0, 0.52, 0.50, 0.08, 0.08),
+        YoloBox(0, 0.80, 0.80, 0.05, 0.05),
+    ]
+
+    optimized, action, _ = optimize_boxes_for_class("dent", boxes)
+
+    assert action == "dent_merge_duplicate_boxes"
+    assert len(optimized) == 2
+
+
+def test_conservative_optimizer_shrinks_wide_crack_box():
+    boxes = [YoloBox(3, 0.50, 0.50, 0.90, 0.20)]
+
+    optimized, action, _ = optimize_boxes_for_class("crack", boxes)
+
+    assert action == "crack_shrink_tall_wide_boxes"
+    assert optimized[0].width == boxes[0].width
+    assert optimized[0].height < boxes[0].height
+
+
+def test_select_stain_rows_keeps_priority_order_and_limit():
+    rows = [
+        {"image_name": "a.jpg", "class_name": "dent", "score": "30"},
+        {"image_name": "b.jpg", "class_name": "stain", "score": "20"},
+        {"image_name": "c.jpg", "class_name": "stain", "score": "10"},
+    ]
+
+    selected = select_stain_rows(rows, limit=1)
+
+    assert [row["image_name"] for row in selected] == ["b.jpg"]
+
+
+def test_worker_template_fields_include_original_and_skip_reason():
+    fields = worker_template_fields()
+
+    assert "worker_judgement" in fields
+    assert "skip_reason" in fields
+    assert "original_image" in fields
+    assert "reference_guide" in fields
+
+
+def test_stain_manual_pack_copies_original_images_and_worker_template(tmp_path: Path):
+    dataset_root = tmp_path / "dataset"
+    prediction_review_dir = tmp_path / "review"
+    output_dir = tmp_path / "out"
+    image_name = "stain_batch_001_0001.jpg"
+    guide_name = "guides/stain_batch_001_0001_review.jpg"
+
+    write_image(dataset_root / "images" / "val" / image_name)
+    write_image(prediction_review_dir / guide_name)
+    with (prediction_review_dir / "review_priority.csv").open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "image_name",
+                "class_name",
+                "score",
+                "issue",
+                "gt_count",
+                "pred_count",
+                "matched_count",
+                "max_iou",
+                "guide_image",
+            ],
+        )
+        writer.writeheader()
+        writer.writerow(
+            {
+                "image_name": image_name,
+                "class_name": "stain",
+                "score": "10",
+                "issue": "漏检 1",
+                "gt_count": "1",
+                "pred_count": "0",
+                "matched_count": "0",
+                "max_iou": "0",
+                "guide_image": guide_name,
+            }
+        )
+
+    rows = build_pack(
+        prediction_review_dir=prediction_review_dir,
+        output_dir=output_dir,
+        dataset_root=dataset_root,
+        limit=5,
+    )
+
+    assert rows[0]["local_original"].startswith("originals/")
+    assert (output_dir / rows[0]["local_original"]).exists()
+    worker_template = (output_dir / "qc_worker_reply_template.csv").read_text(encoding="utf-8-sig")
+    assert "worker_judgement" in worker_template
+    assert image_name in worker_template
+    assert "originals/" in worker_template
+    assert (output_dir / "qc_worker_index.html").exists()
+
+    send_dir = output_dir / "发给质检工人"
+    assert (send_dir / "01_质检说明.md").exists()
+    assert (send_dir / "02_质检回复模板.csv").exists()
+    chinese_template = (send_dir / "02_质检回复模板.csv").read_text(encoding="utf-8-sig")
+    assert "判断结果" in chinese_template
+    assert "处理方式" in chinese_template
+    assert "跳过原因" in chinese_template
+    assert (send_dir / "原图" / f"01_{image_name}").exists()

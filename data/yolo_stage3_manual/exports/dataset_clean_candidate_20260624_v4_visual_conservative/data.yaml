@@ -1,0 +1,10 @@
+path: /data/home/guanjianxiong/visualinspection/yolo_stage3/dataset_clean_candidate_20260624_v4_visual_conservative
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: dent
+  1: powder
+  2: stain
+  3: crack
+  4: transverse_bump
