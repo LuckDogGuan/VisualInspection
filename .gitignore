@@ -64,6 +64,7 @@ src/runs/
 .gemini/
 *.DS_Store
 .DS_Store
+.pytest_cache/
 
 # Keep YOLO stage 3 annotation metadata traceable even though generic CSV files are ignored.
 !data/yolo_stage3_manual/annotation_registry.csv
